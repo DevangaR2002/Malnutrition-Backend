@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from app.config import get_settings
+import shap
 
 settings = get_settings()
 
@@ -35,6 +36,8 @@ class MLService:
     _instance = None
     _model = None
     _scaler = None
+    _shap_explainer = None
+
 
     FEATURE_COLUMNS = [
         'Age (months)',
@@ -54,6 +57,20 @@ class MLService:
         'Region_SNNPR',
         'Region_Tigray'
     ]
+
+    FEATURE_LABELS = {
+    "Disease_Count": "active infections",
+    "Mother_Education_Encoded": "maternal education level",
+    "Wealth_Index_Encoded": "household economic status",
+    "Age_Group_Encoded": "age-related vulnerability",
+    "Weight_kg": "low body weight",
+    "Height_cm": "linear growth",
+    "Height_Age_Ratio": "height-for-age growth",
+    "Weight_Age_Ratio": "weight-for-age growth",
+    "BMI": "body mass index",
+    "Gender_Encoded": "gender-related factors"
+    }
+
 
     def __new__(cls):
         if cls._instance is None:
@@ -79,8 +96,19 @@ class MLService:
             )
         else:
             self._model = model_components
+    
+        try:
+            if isinstance(self._model, HybridBoostingEnsemble):
+                base_model = self._model.models.get("xgb_model")
+            else:
+                base_model = self._model
 
-    # ---------------- FEATURE PREP (UNCHANGED) ----------------
+            if base_model is not None:
+                self._shap_explainer = shap.TreeExplainer       (base_model)
+        except Exception as e:
+            self._shap_explainer = None
+
+
     def _prepare_features(self, data: dict) -> pd.DataFrame:
         age = data['age_months']
         height_m = data['height_cm'] / 100
@@ -129,10 +157,94 @@ class MLService:
             'Region_SNNPR': [1.0],
             'Region_Tigray': [0.0]
         })
+    
+
+    def _generate_xai(self, scaled_df: pd.DataFrame) -> dict | None:
+        """
+        Generate local XAI using SHAP.
+        Returns top contributing factors only.
+        """
+        if self._shap_explainer is None:
+            return None
+
+        try:
+            shap_values = self._shap_explainer.shap_values(scaled_df)
+
+            if isinstance(shap_values, list):
+                shap_values = shap_values[1]
+
+            row = shap_values[0]
+            features = scaled_df.columns
+
+            impacts = sorted(
+                zip(features, row),
+                key=lambda x: abs(x[1]),
+                reverse=True
+            )
+
+            return {
+                "top_factors": [
+                    {
+                        "feature": f,
+                        "impact": float(v)
+                    }
+                    for f, v in impacts[:5]
+                ]
+            }
+
+        except Exception:
+            return None
+    
+    def _xai_to_human_text(self, xai: dict | None) -> str:
+        if xai is None:
+            return (
+                "This assessment was determined using clinical rule-based criteria. "
+                "The child shows no active infections, adequate growth indicators, "
+                "and favorable socioeconomic conditions; therefore, a machine learning "
+                "explanation was not required."
+            )
+
+        if "top_factors" not in xai or not xai["top_factors"]:
+            return (
+                "A machine learning assessment was performed, but no dominant "
+                "risk-driving factors were identified."
+            )
+
+        positive = []
+        negative = []
+
+        for item in xai["top_factors"]:
+            feature = item["feature"]
+            impact = item["impact"]
+
+            label = self.FEATURE_LABELS.get(feature, feature)
+
+            if impact > 0:
+                positive.append(label)
+            else:
+                negative.append(label)
+
+        parts = []
+
+        if positive:
+            parts.append(
+                "Risk is mainly driven by " + ", ".join(positive)
+            )
+
+        if negative:
+            parts.append(
+                "while protective factors include " + ", ".join(negative)
+            )
+
+        return ". ".join(parts) + "."
+
+
 
     def predict(self, data: dict) -> dict:
 
         if self._passes_clear_low_risk_rules(data):
+            xai = None
+            xai_text = self._xai_to_human_text(None)
             return {
                 "prediction": 0,
                 "risk_level": "Low Risk",
@@ -140,12 +252,16 @@ class MLService:
                 "confidence": "High",
                 "recommendations": self._generate_who_recommendations(
                     data, prediction=0, probability=0.05
-                )
+                ),
+                "xai": xai,
+                "xai_text": xai_text
             }
 
         features = self._prepare_features(data)
         scaled = self._scaler.transform(features)
         scaled_df = pd.DataFrame(scaled, columns=self.FEATURE_COLUMNS)
+        xai = self._generate_xai(scaled_df)
+        xai_text = self._xai_to_human_text(xai)
 
         proba = self._model.predict_proba(scaled_df)[0]
         risk_probability = float(proba[1])
@@ -176,7 +292,9 @@ class MLService:
             "risk_level": risk_level,
             "risk_probability": risk_probability,
             "confidence": confidence,
-            "recommendations": recommendations
+            "recommendations": recommendations,
+            "xai": xai,
+            "xai_text" : xai_text
         }
 
     def _generate_who_recommendations(self, data: dict, prediction: int, probability: float) -> list:

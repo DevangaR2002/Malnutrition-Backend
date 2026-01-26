@@ -77,6 +77,13 @@ class RecommendationItem(BaseModel):
     recommendation: str
     source: str
 
+class XAIFactor(BaseModel):
+    feature: str
+    impact: float
+
+class XAIResponse(BaseModel):
+    top_factors: List[XAIFactor]
+
 
 class PredictionResponse(BaseModel):
     """Response schema for prediction results"""
@@ -88,6 +95,9 @@ class PredictionResponse(BaseModel):
     confidence: str
     recommendations: List[RecommendationItem]
     input_summary: dict
+
+    xai: Optional[XAIResponse] = None
+    xai_text: Optional[str] = None
     created_at: datetime
     
     class Config:

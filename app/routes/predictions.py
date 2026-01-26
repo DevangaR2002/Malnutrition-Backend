@@ -78,6 +78,8 @@ async def create_prediction(
             risk_probability=result['risk_probability'],
             confidence=result['confidence'],
             recommendations=result['recommendations'],
+            xai=result.get("xai"),
+            xai_text= result.get("xai_text"),
             input_summary={
                 'age_months': data.age_months,
                 'gender': data.gender.value,
