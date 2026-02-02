@@ -196,47 +196,37 @@ class MLService:
             return None
     
     def _xai_to_human_text(self, xai: dict | None) -> str:
+        """
+        Convert SHAP output into clinically safe, neutral explanation text.
+        """
+
         if xai is None:
             return (
                 "This assessment was determined using clinical rule-based criteria. "
                 "The child shows no active infections, adequate growth indicators, "
-                "and favorable socioeconomic conditions; therefore, a machine learning "
-                "explanation was not required."
+                "and favorable socioeconomic conditions."
             )
 
         if "top_factors" not in xai or not xai["top_factors"]:
             return (
                 "A machine learning assessment was performed, but no dominant "
-                "risk-driving factors were identified."
+                "factors influencing the prediction were identified."
             )
 
-        positive = []
-        negative = []
+        factors = []
 
         for item in xai["top_factors"]:
             feature = item["feature"]
-            impact = item["impact"]
-
             label = self.FEATURE_LABELS.get(feature, feature)
+            factors.append(label)
 
-            if impact > 0:
-                positive.append(label)
-            else:
-                negative.append(label)
+        return (
+            "This prediction was influenced by multiple factors considered together, "
+            "including " + ", ".join(factors) +
+            ". These indicate how the model weighted the information and should not "
+            "be interpreted as direct causes or protective effects."
+        )
 
-        parts = []
-
-        if positive:
-            parts.append(
-                "Risk is mainly driven by " + ", ".join(positive)
-            )
-
-        if negative:
-            parts.append(
-                "while protective factors include " + ", ".join(negative)
-            )
-
-        return ". ".join(parts) + "."
 
 
 
