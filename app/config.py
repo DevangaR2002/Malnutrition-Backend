@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
     
-    database_url: str = "postgresql://postgres:BBB_54321@localhost:5432/malnutrition_db"
+    database_url: str = "postgresql://postgres:PWD@localhost:5432/malnutrition_db"
     
     # API
     api_host: str = "0.0.0.0"
@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     
     app_name: str = "Malnutrition Risk Predictor"
     app_version: str = "1.0.0"
+    
+    secret_key: str = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7" 
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
     
     class Config:
         env_file = ".env"

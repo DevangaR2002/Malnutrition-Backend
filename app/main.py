@@ -5,16 +5,16 @@ from contextlib import asynccontextmanager
 from app.config import get_settings
 from app.database import engine, Base
 from app.routes.predictions import router as predictions_router
+from app.routes.auth import router as auth_router
+from app.routes.admin import router as admin_router
 
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifecycle events for the application"""
     print("Starting up...")
     
-    # Create database tables
     Base.metadata.create_all(bind=engine)
     print("Database tables created")
     
@@ -53,8 +53,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+app.include_router(auth_router)
 app.include_router(predictions_router)
+app.include_router(admin_router)
 
 
 @app.get("/", tags=["Health"])
