@@ -4,7 +4,7 @@ This guide explains how to set up the **PostgreSQL database**, configure the **.
 
 ---
 
-## ✅ Prerequisites
+## Prerequisites
 
 Make sure you have the following installed:
 
@@ -17,7 +17,7 @@ Optional (recommended):
 
 ---
 
-## 1) 🗄️ Database Setup (PostgreSQL)
+## 1) Database Setup (PostgreSQL)
 
 ### 1.1 Create Database
 
@@ -71,11 +71,11 @@ Verify table:
 \d predictions
 ```
 
-✅ You should see the `predictions` table.
+You should see the `predictions` table.
 
 ---
 
-## 2) 🔐 Create `.env` File
+## 2) Create `.env` File
 
 Inside the **backend root folder** (same level as `requirements.txt`), create a file named:
 
@@ -99,7 +99,7 @@ MODEL_PATH=ml_models/best_ensemble_model.pkl
 SCALER_PATH=ml_models/scaler.pkl
 ```
 
-✅ Make sure these files exist:
+Make sure these files exist:
 
 * `ml_models/best_ensemble_model.pkl`
 * `ml_models/scaler.pkl`
@@ -108,7 +108,7 @@ SCALER_PATH=ml_models/scaler.pkl
 
 ---
 
-## 3) 🐍 Create Virtual Environment
+## 3) Create Virtual Environment
 
 From the backend root directory:
 
@@ -118,7 +118,7 @@ python -m venv venv
 
 ---
 
-## 4) ▶️ Activate Virtual Environment & Install Dependencies
+## 4) Activate Virtual Environment & Install Dependencies
 
 ### Windows (PowerShell)
 
@@ -140,7 +140,7 @@ pip install -r requirements.txt
 
 ---
 
-## 5) 🚀 Run the Backend
+## 5) Run the Backend
 
 Run FastAPI using Uvicorn:
 
@@ -156,7 +156,7 @@ Once running, open:
 
 ---
 
-## ✅ Quick Troubleshooting
+## Quick Troubleshooting
 
 ### Database connection issues
 
@@ -180,7 +180,7 @@ ml_models/
 
 ---
 
-## 📂 Project Structure (Backend)
+## Project Structure (Backend)
 
 ```
 backend/
