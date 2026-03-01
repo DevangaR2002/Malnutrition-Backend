@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -9,6 +10,8 @@ class Prediction(Base):
     __tablename__ = "predictions"
     
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True) 
+    
     
     # Child Information
     age_months = Column(Integer, nullable=False)
@@ -33,6 +36,17 @@ class Prediction(Base):
     risk_level = Column(String(20), nullable=False) 
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    user = relationship("User", back_populates="predictions")
+    
+    @property
+    def input_summary(self):
+        return {
+            "age_months": self.age_months,
+            "gender": self.gender,
+            "height_cm": self.height_cm,
+            "weight_kg": self.weight_kg
+        }
     
     def __repr__(self):
         return f"<Prediction(id={self.id}, risk_level={self.risk_level})>"

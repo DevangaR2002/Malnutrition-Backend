@@ -259,16 +259,15 @@ class MLService:
         if risk_probability >= 0.80:
             risk_level = "High Risk"
             prediction = 1
+            confidence = "High"
+        elif risk_probability >= 0.50:
+            risk_level = "Medium Risk"
+            prediction = 2
+            confidence = "Medium"
         else:
             risk_level = "Low Risk"
             prediction = 0
-
-        if risk_probability >= 0.80:
-            confidence = "High"
-        elif risk_probability >=0.60:
-            confidence = "Medium"
-        else:
-            confidence = "Low"
+            confidence = "Low" if risk_probability > 0.3 else "High"
 
 
         recommendations = self._generate_who_recommendations(
@@ -380,6 +379,57 @@ class MLService:
                 "category": "Growth Monitoring",
                 "recommendation": "Regular monitoring of growth parameters; schedule frequent follow-up visits to track weight, height, and MUAC.",
                 "source": "WHO Child Growth Standards"
+            })
+            
+        elif prediction == 2:  # MEDIUM RISK - Moderate Risk / At Risk of Malnutrition
+            # Early Intervention [2]
+            recommendations.append({
+                "category": "Early Intervention Alert",
+                "recommendation": "Assess for underlying causes of growth faltering. Provide nutritional counseling, supplementary feeding if applicable, and increase frequency of growth monitoring.",
+                "source": "WHO Management of Moderate Acute Malnutrition"
+            })
+            
+            # Low Weight [2]
+            if bmi < 15 or data['weight_kg'] < self._get_expected_weight(age) * 0.85:
+                recommendations.append({
+                    "category": "Mild-to-Moderate Underweight",
+                    "recommendation": "Ensure adequate caloric and protein intake, address any chronic infections, and verify food security at home.",
+                    "source": "WHO Malnutrition Fact Sheet"
+                })
+            
+            # Disease Management (TB, Malaria, Diarrhea)
+            if data.get('has_tb'):
+                recommendations.append({
+                    "category": "Tuberculosis (TB)",
+                    "recommendation": "TB treatment according to WHO guidelines; ensure nutritional assessment and support during TB treatment.",
+                    "source": "WHO Consolidated Guidelines on TB"
+                })
+            if data.get('has_malaria'):
+                recommendations.append({
+                    "category": "Malaria",
+                    "recommendation": "Prompt diagnosis and treatment; integrate nutrition counseling during recovery.",
+                    "source": "WHO Malaria Treatment Guidelines"
+                })
+            if data.get('has_diarrhea'):
+                recommendations.append({
+                    "category": "Diarrhea Management",
+                    "recommendation": "Provide ORS and zinc supplementation; continue feeding; address water, sanitation, and hygiene (WASH).",
+                    "source": "WHO & UNICEF Diarrhoea Management Guidelines"
+                })
+                
+            # Social and Educational Support
+            if data['household_wealth_index'] == 'Low' or data['mother_education'] in ['No education', 'Primary']:
+                recommendations.append({
+                    "category": "Targeted Support",
+                    "recommendation": "Provide caregiver education on IYCF practices, hygiene, and danger signs. Link the family to social protection programs if available.",
+                    "source": "WHO Essential Nutrition Actions"
+                })
+                
+            # Preventative
+            recommendations.append({
+                "category": "Proactive Monitoring",
+                "recommendation": "Schedule a follow-up visit within 2-4 weeks to reassess growth trajectory and adherence to feeding advice.",
+                "source": "Clinical Assessment"
             })
         
         else:  # LOW RISK - Well-Nourished
