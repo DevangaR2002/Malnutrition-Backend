@@ -57,11 +57,20 @@ def get_current_user(
     user = get_user_by_username(db, username=token_data.username)
     if user is None:
         raise credentials_exception
+    # Add the check for active user here as well, as per the instruction's intent for token validation
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account has been suspended by an Administrator."
+        )
     return user
 
 def get_current_active_user(current_user: User = Depends(get_current_user)) -> User:
     if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, # Changed from 400 to 403 as per common practice for suspended accounts
+            detail="Your account has been suspended by an Administrator."
+        )
     return current_user
 
 def get_current_admin_user(current_user: User = Depends(get_current_active_user)) -> User:

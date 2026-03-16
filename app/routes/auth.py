@@ -58,6 +58,12 @@ def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
         
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Your account has been suspended by an Administrator."
+        )
+        
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires

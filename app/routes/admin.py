@@ -22,6 +22,28 @@ async def get_all_users(
     accounts = db.query(User).all()
     return accounts
 
+@router.put("/users/{user_id}/toggle-status")
+async def toggle_user_status(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Toggle a user's active status (revoke/grant access)"""
+    user_to_toggle = db.query(User).filter(User.id == user_id).first()
+    
+    if not user_to_toggle:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        
+    # Prevent admins from disabling themselves
+    if user_to_toggle.id == current_user.id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You cannot revoke your own access.")
+        
+    user_to_toggle.is_active = not user_to_toggle.is_active
+    db.commit()
+    
+    status_msg = "restored" if user_to_toggle.is_active else "revoked"
+    return {"message": f"Successfully {status_msg} access for user {user_to_toggle.username}", "is_active": user_to_toggle.is_active}
+
 @router.get("/metrics", response_model=AdminDashboardMetrics)
 async def get_system_metrics(
     db: Session = Depends(get_db),
