@@ -1,48 +1,47 @@
-import sqlite3
 import os
-from sqlalchemy import create_engine, text
-from app.config import get_settings
+import argparse
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+from app.database import Base
+from app.models.user import User
 
-try:
-    # Get DB URL
-    settings = get_settings()
-    db_url = settings.database_url
-    
-    print(f"Applying migration to: {db_url}")
-    
-    if db_url.startswith("sqlite:///"):
-        # SQLite
-        db_path = db_url.replace("sqlite:///", "")
-        db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), db_path)
-        print(f"SQLite path: {db_path}")
-        
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        try:
-            cursor.execute("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;")
-            conn.commit()
-            print("Successfully added is_admin column to SQLite.")
-        except sqlite3.OperationalError as e:
-            if "duplicate column name" in str(e).lower():
-                print("Column is_admin already exists in SQLite.")
-            else:
-                print(f"Error executing SQLite query: {e}")
-                
-        conn.close()
-    
-    elif db_url.startswith("postgresql://"):
-        # PostgreSQL
-        engine = create_engine(db_url)
-        with engine.begin() as conn:
-            try:
-                conn.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;"))
-                print("Successfully added is_admin column to PostgreSQL.")
-            except Exception as e:
-                 print(f"Column might already exist or error occurred: {e}")
-                 
-    else:
-        print("Unsupported database URL scheme for this simple migration script.")
+# Load environment variables
+load_dotenv()
 
-except Exception as e:
-    print(f"Failed to migrate database: {e}")
+def create_admin(username: str):
+    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/malnutrition_db")
+    print(f"Connecting to database: {db_url}")
+    
+    engine = create_engine(db_url)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = SessionLocal()
+    
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        
+        if not user:
+            print(f"Error: User '{username}' not found in the database.")
+            return
+            
+        if user.is_admin:
+            print(f"User '{username}' is already an administrator!")
+            return
+            
+        # Upgrade to admin
+        user.is_admin = True
+        db.commit()
+        print(f"SUCCESS: User '{username}' has been upgraded to an Administrator!")
+        
+    except Exception as e:
+        print(f"Failed to upgrade user: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Grant Administrator privileges to an existing User.")
+    parser.add_argument("username", type=str, help="The username of the clinician to upgrade to Admin")
+    
+    args = parser.parse_args()
+    create_admin(args.username)
