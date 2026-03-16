@@ -1,7 +1,6 @@
 import sys
 import os
 
-# Add the parent directory to sys.path so 'app' can be imported
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'app')))
 
 from fastapi.testclient import TestClient
@@ -19,7 +18,6 @@ def test_feedback_integration():
     db = SessionLocal()
     
     try:
-        # 1. Create a dummy prediction
         dummy_pred = Prediction(
             age_months=24,
             gender="Male",
@@ -42,7 +40,6 @@ def test_feedback_integration():
         
         print(f"Prediction securely created natively in DB with ID {pred_id}.")
         
-        # 2. Submit Feedback asserting it was incorrect
         dummy_feedback = PredictionFeedback(
             prediction_id=pred_id,
             is_correct=False,
@@ -56,7 +53,6 @@ def test_feedback_integration():
         
         print("SQLAlchemy seamlessly committed the Feedback payload mapping the foreign key!")
         
-        # 3. Double check DB directly to ensure integrity
         record = db.query(PredictionFeedback).filter(PredictionFeedback.prediction_id == pred_id).first()
         assert record is not None
         assert record.comments == "Patient appears healthier than numbers suggest."
@@ -66,7 +62,6 @@ def test_feedback_integration():
     except Exception as e:
         print(f"Database error: {e}")
     finally:
-        # Cleanup dummy data
         if 'pred_id' in locals():
             db.query(Prediction).filter(Prediction.id == pred_id).delete()
             db.commit()

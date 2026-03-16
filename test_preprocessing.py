@@ -4,18 +4,15 @@ from app.main import app
 
 client = TestClient(app)
 
-# Helper function to get an auth token for tests
 def get_auth_token():
     import uuid
     unique_user = f"testuser_{uuid.uuid4().hex[:6]}"
     
-    # Register a new unique user
     client.post(
         "/auth/register",
         json={"username": unique_user, "email": f"{unique_user}@example.com", "password": "testpassword123"}
     )
     
-    # Login
     response = client.post(
         "/auth/login",
         data={"username": unique_user, "password": "testpassword123"}
@@ -29,7 +26,6 @@ print("Testing Data Preprocessing Integration...")
 
 def test_missing_data_imputation():
     print("\n1. Testing Missing Data Imputation")
-    # Missing weight, height, and age
     payload = {
         "gender": "Male",
         "mother_education": "Primary",
@@ -56,12 +52,12 @@ def test_anomaly_clamping():
     print("\n2. Testing Extreme Anomaly Clamping")
     
     payload = {
-        "age_months": 250, # Impossible age 
+        "age_months": 250,
         "gender": "Female",
         "mother_education": "Higher",
         "household_wealth_index": "High",
-        "height_cm": 1500, # 15 meters tall (anomaly)
-        "weight_kg": 500,  # 500kg (anomaly)
+        "height_cm": 1500,
+        "weight_kg": 500,
         "has_diarrhea": False,
         "has_malaria": False,
         "has_tb": False
@@ -85,9 +81,9 @@ def test_categorical_standardization():
     
     payload = {
         "age_months": 36,
-        "gender": "female", # lowercase
-        "mother_education": "none whatsoever", # non-standard string
-        "household_wealth_index": "high", # lowercase
+        "gender": "female",
+        "mother_education": "none whatsoever",
+        "household_wealth_index": "high",
         "height_cm": 95,
         "weight_kg": 14,
         "has_diarrhea": False,
@@ -101,7 +97,6 @@ def test_categorical_standardization():
     if response.status_code == 201:
         data = response.json()
         print("Success! Backend successfully standardized the categories (should be properly capitalized):")
-        # To verify we fetch the prediction we just made to see the stored strings
         pred_id = data["id"]
         pred_response = client.get(f"/api/predictions/{pred_id}", headers=headers)
         if pred_response.status_code == 200:

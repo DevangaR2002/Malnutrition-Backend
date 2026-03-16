@@ -37,41 +37,37 @@ def submit_prediction(name, payload):
         print("Failure!", response.status_code, response.json())
         return None
 
-# Scenario 1: Healthy perfectly nourished child -> LOW RISK
 submit_prediction("Low Risk", {
     "age_months": 24,
     "gender": "Male",
     "mother_education": "Secondary",
     "household_wealth_index": "Middle",
     "height_cm": 88.0,
-    "weight_kg": 12.5,  # perfectly average weight
+    "weight_kg": 12.5,
     "has_diarrhea": False,
     "has_malaria": False,
     "has_tb": False
 })
 
-# Scenario 2: Borderline underweight with low wealth -> MEDIUM RISK
-# We will manipulate weights closer to the median but under the 10th percentile
 submit_prediction("Medium Risk", {
     "age_months": 12,
     "gender": "Female",
     "mother_education": "Primary",
     "household_wealth_index": "Middle",
     "height_cm": 75.0,  
-    "weight_kg": 9.2,   # borderline underweight for 12 mo (median is ~9.6kg)
-    "has_diarrhea": False, # Mild illness factor
+    "weight_kg": 9.2,   
+    "has_diarrhea": False, 
     "has_malaria": False,
     "has_tb": False
 })
 
-# Scenario 3: Extremely severe stunting/wasting + TB -> HIGH RISK
 submit_prediction("High Risk", {
     "age_months": 36,
     "gender": "Male",
     "mother_education": "No education",
     "household_wealth_index": "Low",
-    "height_cm": 80.0, # severely stunted for 36mo (median 96)
-    "weight_kg": 9.0,  # severely wasted for 36mo (median 14.3)
+    "height_cm": 80.0, 
+    "weight_kg": 9.0,  
     "has_diarrhea": True,
     "has_malaria": True,
     "has_tb": True
