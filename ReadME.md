@@ -1,6 +1,6 @@
-# NutriGuard AI
+# MalnutriAid AI
 
-NutriGuard AI is a full-stack, machine learning-powered clinical diagnostic platform designed to predict, monitor, and analyze childhood malnutrition risk in real-time. It provides healthcare workers with an intuitive interface to log patient anthropometrics, instantly receive AI-driven risk assessments, and contribute to continuous model improvement (MLOps).
+MalnutriAid AI is a full-stack, machine learning-powered clinical diagnostic platform designed to predict, monitor, and analyze childhood malnutrition risk in real-time. It provides healthcare workers with an intuitive interface to log patient anthropometrics, instantly receive AI-driven risk assessments, and contribute to continuous model improvement (MLOps).
 
 ## System Architecture
 
@@ -14,7 +14,7 @@ The platform operates on a decoupled client-server architecture:
 
 ## How the Machine Learning Works
 
-The core of NutriGuard AI is a sophisticated prediction pipeline designed for clinical resilience.
+The core of MalnutriAid AI is a sophisticated prediction pipeline designed for clinical resilience.
 
 ### 1. Robust Preprocessing
 
@@ -34,7 +34,7 @@ The system utilizes an XGBoost ensemble trained on malnutrition datasets. Rather
 
 ### 3. Continuous MLOps Feedback Loop
 
-NutriGuard AI learns from its experts. After receiving a prediction, clinicians can actively submit a **Feedback Override** if they disagree with the AI's classification. These securely logged disputes (including text justifications) are aggregated in the Admin Dashboard and can be exported as an anonymized CSV dataset to retrain and tune the model's blindspots in the future.
+MalnutriAid AI learns from its experts. After receiving a prediction, clinicians can actively submit a **Feedback Override** if they disagree with the AI's classification. These securely logged disputes (including text justifications) are aggregated in the Admin Dashboard and can be exported as an anonymized CSV dataset to retrain and tune the model's blindspots in the future.
 
 ---
 

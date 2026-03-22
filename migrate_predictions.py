@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def migrate():
-    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/nutriguard")
+    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/malnutriaid")
     print(f"Connecting to database: {db_url}")
     
     try:

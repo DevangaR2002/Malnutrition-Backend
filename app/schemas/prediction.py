@@ -25,7 +25,7 @@ class WealthIndexEnum(str, Enum):
 class ChildDataInput(BaseModel):
     """Input schema for child data"""
     
-    age_months: Optional[int] = Field(None, ge=0, description="Age in months (0-60)")
+    age_months: Optional[int] = Field(None, ge=0, le=59, description="Age in months (0-59)")
     gender: Optional[str] = Field(None, description="Gender of the child")
     mother_education: Optional[str] = Field(None, description="Mother's education level")
     household_wealth_index: Optional[str] = Field(None, description="Household wealth index")

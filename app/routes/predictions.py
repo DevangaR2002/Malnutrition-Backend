@@ -315,5 +315,5 @@ async def export_dataset(
     return StreamingResponse(
         iter([stream.getvalue()]),
         media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=nutriguard_research_export.csv"}
+        headers={"Content-Disposition": "attachment; filename=malnutriaid_research_export.csv"}
     )
