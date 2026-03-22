@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def migrate():
-    db_url = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/malnutriaid")
+    db_url = os.getenv("DATABASE_URL", "postgresql://neondb_owner:<ENTER_PASSWORD>@ep-flat-forest-a1ge6442-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
     print(f"Connecting to database: {db_url}")
     
     try:

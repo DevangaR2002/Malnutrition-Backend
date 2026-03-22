@@ -44,6 +44,30 @@ async def toggle_user_status(
     status_msg = "restored" if user_to_toggle.is_active else "revoked"
     return {"message": f"Successfully {status_msg} access for user {user_to_toggle.username}", "is_active": user_to_toggle.is_active}
 
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """Delete a user and all their associated data from the system"""
+    user_to_delete = db.query(User).filter(User.id == user_id).first()
+    
+    if not user_to_delete:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        
+    if user_to_delete.is_admin:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete an admin user.")
+        
+    # Delete associated predictions (cascades to feedbacks)
+    db.query(Prediction).filter(Prediction.user_id == user_id).delete(synchronize_session=False)
+    
+    db.delete(user_to_delete)
+    db.commit()
+    
+    return None
+
+
 @router.get("/metrics", response_model=AdminDashboardMetrics)
 async def get_system_metrics(
     db: Session = Depends(get_db),
