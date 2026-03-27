@@ -54,9 +54,6 @@ cover/
 # Environments
 .env
 .venv
-<<<<<<< HEAD
-__pycache__
-=======
 env/
 venv/
 ENV/
@@ -88,4 +85,3 @@ __pycache__/
 *.pyc
 .env
 venv/
->>>>>>> 08b5a90 (Backend updates)
